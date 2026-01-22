@@ -1,80 +1,74 @@
-src/
-  ├── components/   (Botões, inputs, itens da lista)
-  ├── screens/      (As telas: Home, Cadastro, Detalhes)
-  ├── services/     (Configuração do AsyncStorage e Notificações)
-  ├── types/        (Definições de tipos do TypeScript)
-  ├── utils/        (Cálculos de data com dayjs e formatação de moeda)
-  └── theme/        (Cores e estilos globais)
+import React, { useEffect } from "react";
+import { useColorScheme, StatusBar } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as SplashScreen from 'expo-splash-screen';
 
-  Gerenciamento automático de cores e temas do sistema
+// Importando as fontes que instalamos
+import { useFonts, VT323_400Regular } from '@expo-google-fonts/vt323';
+import { Inter_400Regular, Inter_900Black } from '@expo-google-fonts/inter';
 
-  export const Colors = {
-  light: {
-    background: '#FFFFFF',
-    text: '#121212',
-    primary: '#007AFF', // Azul moderno
-    secondary: '#5856D6',
-    card: '#F2F2F7',
-    border: '#C7C7CC',
-    danger: '#FF3B30',
-    success: '#34C759',
-  },
-  dark: {
-    background: '#000000',
-    text: '#FFFFFF',
-    primary: '#0A84FF',
-    secondary: '#5E5CE6',
-    card: '#1C1C1E',
-    border: '#38383A',
-    danger: '#FF453A',
-    success: '#32D74B',
-  }
+import { HomeScreen } from "./src/screens/HomeScreen";
+import { AddDebtScreen } from "./src/screens/AddDebtScreen";
+import { Colors } from "./src/theme/colors";
+
+export type RootStackParamList = {
+  Home: undefined;
+  AddDebt: undefined;
 };
 
-npx expo install @react-navigation/native @react-navigation/native-stack react-native-screens react-native-safe-area-context
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-import React from 'react';
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
-import { Colors } from '../theme/colors';
+// Impede que a tela de carregamento suma antes das fontes estarem prontas
+SplashScreen.preventAutoHideAsync();
 
-export function HomeScreen() {
-  const theme = useColorScheme() ?? 'light'; // Detecta se o celular está em dark ou light mode
-  const currentColors = Colors[theme];
-
-  return (
-    <View style={[styles.container, { backgroundColor: currentColors.background }]}>
-      <Text style={{ color: currentColors.text }}>Minhas Dívidas</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-
-import React from 'react';
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
-import { Colors } from '../theme/colors';
-
-export function AddDebtScreen() {
-  const theme = useColorScheme() ?? 'light';
+export default function App() {
+  const theme = useColorScheme() ?? "light";
   
+  // Carregando as fontes
+  const [fontsLoaded] = useFonts({
+    Pixel: VT323_400Regular,
+    Inter: Inter_400Regular,
+    InterBold: Inter_900Black,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
   return (
-    <View style={[styles.container, { backgroundColor: Colors[theme].background }]}>
-      <Text style={{ color: Colors[theme].text }}>Nova Dívida</Text>
-    </View>
+    <NavigationContainer>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}/>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          // Estilo Brutalista no Header
+          headerStyle: { 
+            backgroundColor: theme === 'dark' ? '#000' : '#F5F2ED',
+          },
+          headerTitleStyle: {
+            fontFamily: 'Pixel',
+            fontSize: 28,
+          },
+          headerShadowVisible: false, // Remove a sombra suave do iOS
+          headerTintColor: theme === 'dark' ? '#fff' : '#000',
+        }}>
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: 'OKUTI // CONTROLE'}}
+        />
+
+        <Stack.Screen
+          name="AddDebt"
+          component={AddDebtScreen}
+          options={{ title: 'NOVO KILAPE'}}
+        /> 
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
